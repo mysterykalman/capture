@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Capture Inspector Fixture</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+  Fixture site for extensions/chromium's inspector content script and
+  locator-generation tests (Part I §31: "Fixture pages must include: nested
+  DOM; shadow DOM; flex; grid; pseudo-elements; CSS variables; cross-origin
+  stylesheet case; self-hosted web font; fallback font; variable font;
+  hover/focus state; responsive media query; container query; accessibility
+  roles; images/srcset").
+
+  This file is opened directly (file://) or served statically for manual
+  testing of the real content script in a real browser — it is NOT used by
+  the vitest unit tests (those build DOM fixtures in-memory with jsdom).
+-->
+<style>
+  :root {
+    --brand-blue-600: #4D6BFF;
+    --brand-ink: #11131A;
+    --radius-card: 8px;
+    --radius-outlier: 6px; /* deliberate one-off, for outlier-detector testing */
+  }
+
+  /* Self-hosted variable font with a documented (fake, local-only) source,
+     so "font source provenance" logic has something concrete to resolve
+     without a network fetch. */
+  @font-face {
+    font-family: "Fixture Sans";
+    src: local("Arial"); /* stand-in: no real font file ships in the fixture */
+    font-weight: 400 700;
+    font-display: swap;
+  }
+
+  body {
+    font-family: "Fixture Sans", "Helvetica Neue", Arial, sans-serif; /* authored fallback stack */
+    color: var(--brand-ink);
+    margin: 0;
+    padding: 24px;
+  }
+
+  /* Pseudo-elements */
+  .badge::before {
+    content: "NEW";
+    background: var(--brand-blue-600);
+    color: #fff;
+    border-radius: var(--radius-card);
+    padding: 2px 6px;
+    margin-right: 6px;
+    font-size: 11px;
+  }
+  .quote::after {
+    content: "\2014 Fixture";
+    display: block;
+    font-style: italic;
+    opacity: 0.6;
+  }
+
+  /* Flex layout */
+  .flex-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  /* Grid layout */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .card {
+    border: 1px solid #ddd;
+    border-radius: var(--radius-card);
+    padding: 12px;
+  }
+  .card.outlier {
+    border-radius: var(--radius-outlier);
+  }
+
+  /* hover/focus state coverage */
+  .cta {
+    background: var(--brand-blue-600);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-card);
+    padding: 10px 18px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .cta:hover { background: #3d59e0; }
+  .cta:focus-visible { outline: 3px solid #B9E94E; outline-offset: 2px; }
+
+  /* Container query */
+  .sidebar {
+    container-type: inline-size;
+    width: 320px;
+    border: 1px dashed #ccc;
+    padding: 12px;
+  }
+  @container (min-width: 300px) {
+    .sidebar .stat { font-size: 20px; }
+  }
+
+  /* Responsive media query breakpoint, for breakpoint auto-discovery */
+  @media (max-width: 768px) {
+    .card-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .card-grid { grid-template-columns: 1fr; }
+  }
+
+  shadow-host { display: block; margin-top: 24px; }
+</style>
+<!-- Deliberately-broken cross-origin stylesheet reference: exercises the
+     "inaccessible cross-origin stylesheet -> sourceUnavailable" code path
+     rather than a same-origin fixture file, without needing network access. -->
+<link rel="stylesheet" href="https://example-cdn.invalid/cross-origin.css" crossorigin="anonymous">
+</head>
+<body>
+  <header>
+    <nav aria-label="Primary">
+      <a href="#products">Products</a>
+      <a href="#about">About</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1 class="badge">Fixture Product Page</h1>
+
+    <div class="flex-row" data-testid="price-row">
+      <span id="price" data-price="49.00">$49.00</span>
+      <span class="compare-at" style="text-decoration: line-through; opacity:.6;">$69.00</span>
+    </div>
+
+    <button class="cta" data-testid="add-to-cart" aria-label="Add to cart" type="button">
+      Add to cart
+    </button>
+
+    <p class="quote">Nested DOM depth check
+      <span>level 2
+        <span>level 3
+          <span data-testid="deep-target">level 4 target</span>
+        </span>
+      </span>
+    </p>
+
+    <section class="card-grid" role="list" aria-label="Product cards">
+      <article class="card" role="listitem"><h3>Card A</h3><p>Body text</p></article>
+      <article class="card" role="listitem"><h3>Card B</h3><p>Body text</p></article>
+      <article class="card outlier" role="listitem"><h3>Card C (outlier radius)</h3><p>Body text</p></article>
+    </section>
+
+    <aside class="sidebar">
+      <div class="stat">1,204 reviews</div>
+    </aside>
+
+    <img
+      src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'/%3E"
+      srcset="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'/%3E 1x"
+      width="400" height="300"
+      alt="Fixture hero image"
+      loading="lazy"
+      data-testid="hero-image"
+    >
+
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2'/%3E" alt="">
+
+    <shadow-host></shadow-host>
+
+    <form aria-label="Newsletter signup">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" required autocomplete="email">
+      <button type="submit">Subscribe</button>
+    </form>
+  </main>
+
+  <footer role="contentinfo">
+    <p>&copy; Fixture</p>
+  </footer>
+
+  <script>
+    // Shadow DOM host, for the "closed shadow root" inspector edge case.
+    const host = document.querySelector("shadow-host");
+    const root = host.attachShadow({ mode: "open" });
+    root.innerHTML = `
+      <style>
+        .inner { font: 14px system-ui; padding: 8px; border: 1px solid #4D6BFF; border-radius: 6px; }
+      </style>
+      <div class="inner" data-testid="shadow-target">Inside an open shadow root</div>
+    `;
+  </script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Capture Accessibility Fixture</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+  Fixture for the accessibility module (Part III §11): landmarks, heading
+  outline (with a deliberate hierarchy skip), focus order, forms, contrast,
+  and target-size issues, each intentionally including both a "good" and a
+  "bad" example so detectors have something real to flag.
+-->
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 24px; }
+  .low-contrast { color: #aaaaaa; background: #f5f5f5; } /* fails WCAG AA */
+  .good-contrast { color: #11131A; background: #ffffff; } /* passes WCAG AAA */
+  .tiny-target { width: 18px; height: 18px; } /* below common 24-44px target-size guidance */
+  .good-target { width: 44px; height: 44px; }
+  .visually-hidden-but-focusable:focus { outline: 2px solid #4D6BFF; }
+</style>
+</head>
+<body>
+  <a class="visually-hidden-but-focusable" href="#main">Skip to content</a>
+
+  <header role="banner">
+    <h1>Accessibility Fixture</h1>
+    <nav aria-label="Primary">
+      <a href="#main">Main</a>
+      <a href="#search">Search</a>
+    </nav>
+  </header>
+
+  <nav aria-label="Search" id="search">
+    <form role="search">
+      <label for="q">Search</label>
+      <input id="q" type="search" name="q">
+      <button type="submit">Go</button>
+    </form>
+  </nav>
+
+  <main id="main">
+    <h1>Duplicate H1 (deliberate issue)</h1>
+
+    <!-- Deliberate heading-hierarchy skip: h2 -> h4 -->
+    <h2>Section A</h2>
+    <h4>Skipped H3 (deliberate issue)</h4>
+
+    <section aria-labelledby="cards-heading">
+      <h2 id="cards-heading">Product cards</h2>
+
+      <article>
+        <h3>Card with good contrast</h3>
+        <p class="good-contrast">This text passes WCAG AAA contrast.</p>
+        <button class="good-target" type="button" aria-label="Add card A to cart">+</button>
+      </article>
+
+      <article>
+        <h3>Card with low contrast (deliberate issue)</h3>
+        <p class="low-contrast">This text fails WCAG AA contrast.</p>
+        <button class="tiny-target" type="button">+</button> <!-- also missing an accessible name -->
+      </article>
+    </section>
+
+    <section>
+      <h2>Links</h2>
+      <a href="/a">Click here</a> <!-- vague link text, deliberate issue -->
+      <a href="/b">Read the full return policy</a> <!-- good link text -->
+      <a href="javascript:void(0)"></a> <!-- empty link, deliberate issue -->
+    </section>
+
+    <section>
+      <h2>Images</h2>
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2'/%3E" alt="Descriptive alt text">
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2'/%3E"> <!-- missing alt, deliberate issue -->
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2'/%3E" alt="" role="presentation"> <!-- correctly decorative -->
+    </section>
+
+    <section>
+      <h2>Form</h2>
+      <form>
+        <fieldset>
+          <legend>Shipping address</legend>
+          <label for="name">Full name</label>
+          <input id="name" name="name" required autocomplete="name">
+
+          <label for="zip">ZIP code</label>
+          <input id="zip" name="zip" required autocomplete="postal-code" aria-describedby="zip-error">
+          <span id="zip-error" role="alert" hidden>Enter a valid ZIP code.</span>
+
+          <input type="text" placeholder="Unlabeled input (deliberate issue)">
+        </fieldset>
+        <button type="submit">Submit</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>Focus order (tabindex abuse, deliberate issue)</h2>
+      <button tabindex="3">Third</button>
+      <button tabindex="1">First</button>
+      <button tabindex="2">Second</button>
+    </section>
+
+    <section>
+      <h2>ARIA widgets</h2>
+      <div role="button" tabindex="0" aria-pressed="false" id="toggle">Toggle (custom widget)</div>
+      <div role="tablist" aria-label="Fixture tabs">
+        <button role="tab" aria-selected="true" id="tab-1" aria-controls="panel-1">Tab 1</button>
+        <button role="tab" aria-selected="false" id="tab-2" aria-controls="panel-2">Tab 2</button>
+      </div>
+      <div role="tabpanel" id="panel-1" aria-labelledby="tab-1">Panel 1 content</div>
+      <div role="tabpanel" id="panel-2" aria-labelledby="tab-2" hidden>Panel 2 content</div>
+    </section>
+  </main>
+
+  <footer role="contentinfo">
+    <p>Fixture footer</p>
+  </footer>
+</body>
+</html>

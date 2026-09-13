@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fixture Store — Trail Runner Jacket</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+  Fixture for ecommerce/Shopify-intelligence testing (Part III §13): a
+  DOM shaped like a typical Shopify PDP (product-form, JSON-LD Product/Offer,
+  price + compare-at, variant swatches, recommendations module, review
+  count), plus a couple of common ecommerce analytics-technology signals
+  (a fake GA4-shaped global and a fake pixel script tag) so technology
+  fingerprinting has real, if fictitious, evidence to detect.
+
+  This is a fixture, not a real store — no network requests are made and
+  no real theme/vendor code is present or implied.
+-->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "Trail Runner Jacket",
+  "sku": "FIX-TRJ-001",
+  "brand": { "@type": "Brand", "name": "Fixture Outfitters" },
+  "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.6", "reviewCount": "128" },
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "USD",
+    "price": "89.00",
+    "availability": "https://schema.org/InStock"
+  }
+}
+</script>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 0; }
+  .announcement-bar { background: #11131A; color: #fff; text-align: center; padding: 8px; font-size: 13px; }
+  header.site-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid #eee; }
+  main { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; padding: 24px; max-width: 1100px; margin: 0 auto; }
+  .gallery img { width: 100%; border-radius: 8px; }
+  .price-row { display: flex; align-items: baseline; gap: 10px; }
+  .price { font-size: 28px; font-weight: 700; }
+  .compare-at { text-decoration: line-through; color: #888; }
+  .badge-sale { background: #FF6262; color: #fff; border-radius: 4px; padding: 2px 8px; font-size: 12px; }
+  fieldset.swatches { border: none; padding: 0; margin: 16px 0; display: flex; gap: 8px; }
+  fieldset.swatches label { border: 1px solid #ccc; border-radius: 6px; padding: 8px 14px; cursor: pointer; }
+  button.add-to-cart { background: #11131A; color: #fff; border: none; border-radius: 6px; padding: 14px 24px; font-size: 16px; font-weight: 600; width: 100%; cursor: pointer; }
+  .reviews-summary { margin-top: 12px; color: #555; }
+  .recommendations { padding: 24px; border-top: 1px solid #eee; }
+  .recommendations .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .rec-card { border: 1px solid #eee; border-radius: 8px; padding: 12px; }
+</style>
+</head>
+<body>
+  <div class="announcement-bar">Free shipping on orders over $75</div>
+
+  <header class="site-header">
+    <div class="logo">Fixture Outfitters</div>
+    <nav aria-label="Primary">
+      <a href="#">New Arrivals</a>
+      <a href="#">Outerwear</a>
+      <a href="#">Sale</a>
+    </nav>
+    <div class="cart" aria-label="Cart" data-testid="cart-icon">Cart (0)</div>
+  </header>
+
+  <nav aria-label="Breadcrumb" style="padding: 8px 24px; font-size: 13px; color: #666;">
+    <a href="#">Home</a> / <a href="#">Outerwear</a> / Trail Runner Jacket
+  </nav>
+
+  <main data-testid="pdp-main">
+    <section class="gallery" data-testid="pdp-gallery" aria-label="Product images">
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5'/%3E" alt="Trail Runner Jacket, front view" width="800" height="1000">
+    </section>
+
+    <section class="product-info" data-testid="pdp-info">
+      <h1>Trail Runner Jacket</h1>
+
+      <div class="reviews-summary" data-testid="reviews-summary">
+        <span aria-label="4.6 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span>
+        128 reviews
+      </div>
+
+      <div class="price-row" data-testid="price-row">
+        <span class="badge-sale">Sale</span>
+        <span class="price" data-price="89.00">$89.00</span>
+        <span class="compare-at" data-compare-at="119.00">$119.00</span>
+      </div>
+
+      <form data-product-form data-testid="product-form">
+        <fieldset class="swatches" aria-label="Size">
+          <label><input type="radio" name="size" value="S"> S</label>
+          <label><input type="radio" name="size" value="M" checked> M</label>
+          <label><input type="radio" name="size" value="L"> L</label>
+          <label><input type="radio" name="size" value="XL" disabled> XL (sold out)</label>
+        </fieldset>
+
+        <input type="hidden" name="variant-id" value="44821390000123" data-testid="variant-id">
+
+        <button type="submit" class="add-to-cart" data-testid="add-to-cart">Add to cart</button>
+      </form>
+
+      <p style="margin-top: 12px; font-size: 13px; color: #666;">SKU: FIX-TRJ-001</p>
+    </section>
+  </main>
+
+  <section class="recommendations" data-testid="recommendations" aria-label="You may also like">
+    <h2>You may also like</h2>
+    <div class="grid" data-recommendation-provider="fixture-native">
+      <article class="rec-card"><h3>Trail Runner Pants</h3><p>$79.00</p></article>
+      <article class="rec-card"><h3>Insulated Vest</h3><p>$69.00</p></article>
+      <article class="rec-card"><h3>Merino Base Layer</h3><p>$49.00</p></article>
+      <article class="rec-card"><h3>Trail Runner Jacket</h3><p>$89.00</p></article> <!-- deliberate duplicate, for dedupe-detection tests -->
+    </div>
+  </section>
+
+  <footer style="padding: 24px; text-align:center; color:#888; font-size:13px;">
+    Fixture store &mdash; not a real product or brand.
+  </footer>
+
+  <script>
+    // Fake analytics globals shaped like real-world technology-fingerprint
+    // signals, purely for the extension's tech-detection logic to find —
+    // none of this makes network requests.
+    window.dataLayer = window.dataLayer || [];
+    window.__fixtureAnalytics = { provider: "fixture-ga4-like", measurementId: "G-FIXTURE123" };
+  </script>
+</body>
+</html>
