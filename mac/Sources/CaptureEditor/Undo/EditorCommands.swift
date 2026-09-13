@@ -333,7 +333,7 @@ public final class GroupAnnotationsCommand: UndoCommand, @unchecked Sendable {
     public func undo() {
         for id in annotationIds {
             guard let idx = document.index(ofAnnotation: id) else { continue }
-            document.annotations[idx].groupId = previousGroupIds[id]?.value ?? nil
+            document.annotations[idx].groupId = previousGroupIds[id]?.value
         }
     }
 }
