@@ -1,0 +1,25 @@
+{
+  "name": "capture-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Capture browser bridge: DOM inspect, element capture, scroll-stitch helper, and Native Messaging bridge to the Capture macOS app.",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "watch": "node scripts/build.mjs --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "package": "npm run build && node scripts/package.mjs"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.270",
+    "@typescript-eslint/eslint-plugin": "^8.8.0",
+    "@typescript-eslint/parser": "^8.8.0",
+    "esbuild": "^0.24.0",
+    "eslint": "^9.11.1",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  }
+}

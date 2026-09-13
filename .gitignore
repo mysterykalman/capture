@@ -1,0 +1,34 @@
+# Swift / Xcode
+.build/
+.swiftpm/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.moved-aside
+.DS_Store
+
+# Packaging output
+macapp/dist/
+macapp/build/
+*.app
+*.dmg
+*.pkg
+
+# Node / extension
+node_modules/
+extension/dist/
+extension/*.zip
+npm-debug.log*
+.pnpm-debug.log*
+
+# Env / secrets
+.env
+.env.local
+*.p8
+*.p12
+*.mobileprovision
+
+# Editor
+.vscode/
+.idea/
+*.swp
