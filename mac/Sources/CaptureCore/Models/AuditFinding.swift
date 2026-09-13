@@ -54,7 +54,7 @@ public struct AuditFinding: Codable, Identifiable, Hashable, Sendable {
 }
 
 /// Generates sequential per-category ids like `PDP-01`, `NAV-02` (Part III §17).
-public struct AuditFindingIdGenerator {
+public struct AuditFindingIdGenerator: Sendable {
     private static let categoryPrefixes: [AuditFinding.Category: String] = [
         .navigation: "NAV", .homepage: "HOME", .plp: "PLP", .pdp: "PDP", .search: "SEARCH",
         .recommendations: "REC", .cart: "CART", .checkout: "CHECKOUT", .accessibility: "A11Y",
