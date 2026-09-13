@@ -8,16 +8,15 @@ xcuserdata/
 .DS_Store
 
 # Packaging output
-macapp/dist/
-macapp/build/
+build/
 *.app
 *.dmg
 *.pkg
 
 # Node / extension
 node_modules/
-extension/dist/
-extension/*.zip
+extensions/chromium/dist/
+extensions/chromium/*.zip
 npm-debug.log*
 .pnpm-debug.log*
 
