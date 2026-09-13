@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Capture Options</title>
+  <style>
+    body {
+      max-width: 480px;
+      margin: 32px auto;
+      padding: 0 20px;
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #1b1e25;
+      background: #ffffff;
+    }
+    h1 { font-size: 18px; margin-bottom: 4px; }
+    .subtitle { color: #6a707c; margin-bottom: 24px; font-size: 13px; }
+    section {
+      border: 1px solid #e4e6eb;
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin-bottom: 16px;
+    }
+    section h2 { font-size: 14px; margin: 0 0 8px; }
+    section p { margin: 0 0 10px; font-size: 13px; color: #454a54; }
+    .button {
+      display: inline-block;
+      padding: 8px 14px;
+      background: #2f6fed;
+      color: #fff;
+      text-decoration: none;
+      border: none;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .button:hover { background: #275bc4; }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    label.switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+      flex: none;
+    }
+    label.switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: #ccd0d9;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 2px;
+      top: 2px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.15s;
+    }
+    input:checked + .slider { background: #2f6fed; }
+    input:checked + .slider::before { transform: translateX(18px); }
+    .status-note { font-size: 12px; color: #6a707c; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <h1>Capture Browser Bridge</h1>
+  <div class="subtitle">Settings for the Chromium extension side of Capture.</div>
+
+  <section>
+    <h2>Inspect Page shortcut</h2>
+    <p>
+      Chrome manages extension keyboard shortcuts centrally — this extension
+      cannot rebind its own shortcut from this page. Open
+      <code>chrome://extensions/shortcuts</code> to view or change it.
+    </p>
+    <button class="button" id="shortcuts-link" type="button">Open Chrome Shortcuts</button>
+  </section>
+
+  <section>
+    <h2>Bookmarks bar privacy</h2>
+    <div class="toggle-row">
+      <p style="margin:0">
+        Report browser-window geometry so Capture.app can automatically
+        obscure the bookmarks/favourites bar in captures (Tier 2 of the
+        bookmarks-bar privacy rule — page content is never inspected for
+        this).
+      </p>
+      <label class="switch">
+        <input type="checkbox" id="bookmarks-bar-toggle" />
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="status-note" id="toggle-status"></div>
+  </section>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>
