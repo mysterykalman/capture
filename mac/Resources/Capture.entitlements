@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	 Capture is distributed outside the Mac App Store (Developer ID / ad-hoc)
+	 for v1, per Part I's "no forced cloud account / works fully offline"
+	 principle and because ScreenCaptureKit + AXUIElement + arbitrary-path
+	 Unix-socket IPC + a Native Messaging helper do not fit the App Sandbox
+	 cleanly. This is a real trade-off (no automatic App Store distribution)
+	 documented here rather than silently assumed — see
+	 docs/decisions/0003-distribution-outside-app-store.md.
+	-->
+	<key>com.apple.security.app-sandbox</key>
+	<false/>
+	<key>com.apple.security.cs.disable-library-validation</key>
+	<false/>
+	<key>com.apple.security.device.audio-input</key>
+	<true/>
+	<key>com.apple.security.device.camera</key>
+	<true/>
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
+</dict>
+</plist>

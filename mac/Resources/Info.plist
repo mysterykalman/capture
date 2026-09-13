@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleName</key>
+	<string>Capture</string>
+	<key>CFBundleDisplayName</key>
+	<string>Capture</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.capture.app</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1.0</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleExecutable</key>
+	<string>Capture</string>
+	<key>CFBundleIconFile</key>
+	<string>Capture</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>15.0</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>LSUIElement</key>
+	<false/>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Capture Project</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.capture.project</string>
+			</array>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+		</dict>
+	</array>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.capture.project</string>
+			<key>UTTypeDescription</key>
+			<string>Capture Project</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>capture</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
+	<!--
+	 Screen Recording, Accessibility, Microphone, and Camera are NOT declared
+	 as always-required here (no NSCameraUsageDescription forcing a launch
+	 prompt) — per docs/PERMISSIONS.md, each is requested progressively, only
+	 when the specific feature that needs it is invoked. Usage-description
+	 strings are still required by the OS the first time each is actually
+	 requested, so they are present, but nothing here forces an eager prompt.
+	-->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Capture uses the microphone only when you start a recording that includes microphone audio.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Capture uses the camera only when you start a recording with a camera overlay.</string>
+</dict>
+</plist>

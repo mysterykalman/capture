@@ -127,7 +127,12 @@ public enum IPCFraming {
     public static func decodeOne(from buffer: Data) -> (frame: Data, remainder: Data)? {
         guard buffer.count >= 4 else { return nil }
         let lengthBytes = buffer.prefix(4)
-        let length = lengthBytes.withUnsafeBytes { $0.load(as: UInt32.self) }.littleEndian
+        // `loadUnaligned` (not `load`) because `buffer.prefix(4)`'s backing
+        // storage is not guaranteed 4-byte aligned — `Data` built up via
+        // repeated `append`/`subdata` (exactly how this buffer arrives from
+        // a socket/pipe read loop) offers no alignment guarantee, and
+        // `load(as:)` is undefined behaviour on an unaligned pointer.
+        let length = lengthBytes.withUnsafeBytes { $0.loadUnaligned(as: UInt32.self) }.littleEndian
         let total = 4 + Int(length)
         guard buffer.count >= total else { return nil }
         let frame = buffer.subdata(in: 4..<total)
