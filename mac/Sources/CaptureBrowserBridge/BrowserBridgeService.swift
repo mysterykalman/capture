@@ -34,6 +34,29 @@ public final class BrowserBridgeService: @unchecked Sendable {
     public let evidenceStore: ElementEvidenceStore
     public let tabMetadata: TabMetadataStore
 
+    /// Called whenever a new tab session is created (`session.start`).
+    /// This is the discovery hook `CaptureApp` needs to learn a
+    /// `tabSessionId` exists at all — without it, `latestEvidence(forTabSession:)`
+    /// is unreachable because nothing ever tells the app which id to ask
+    /// for (a real gap found during `CaptureUI`/`CaptureApp` integration:
+    /// this service previously had no session/evidence discovery API,
+    /// only by-id lookup). Set before calling `start()`; invoked
+    /// synchronously on whatever thread the inbound socket read happens on
+    /// — callers that touch AppKit must dispatch to the main queue
+    /// themselves, the same responsibility `@unchecked Sendable` already
+    /// places on every other cross-thread use of this class.
+    public var onSessionStarted: (@Sendable (UUID) -> Void)?
+
+    /// Called whenever fresh `ElementEvidence` is stored for a tab session
+    /// (from either `element.pin` or the `requestElementCapture` reply
+    /// `element.evidence`) — the second half of the same discovery gap:
+    /// `latestEvidence(forTabSession:)` only answers "what's the latest
+    /// evidence right now", it never tells anyone new evidence arrived.
+    /// `CaptureApp.BrowserElementCaptureFlow` is the intended subscriber —
+    /// wiring it up turns the already-complete Phase 3 data pipeline into
+    /// something that actually fires without the user separately polling.
+    public var onEvidenceUpdated: (@Sendable (UUID, ElementEvidence) -> Void)?
+
     /// `internal`, not `private`: lets `CaptureBrowserBridgeTests`
     /// (`@testable import`) dispatch real requests through the exact
     /// handlers registered below without needing a live socket — exercising
@@ -147,12 +170,13 @@ public final class BrowserBridgeService: @unchecked Sendable {
     /// *inbound* — this app sends those, it never accepts them as a
     /// request from the native host.
     private func registerHandlers() {
-        dispatcher.register(.sessionStart) { [sessions] request in
+        dispatcher.register(.sessionStart) { [sessions, weak self] request in
             switch PayloadCodec.decode(SessionStartPayload.self, from: request.payload) {
             case .failure(let error):
                 return .failure(id: request.id, code: error.code, message: error.message)
             case .success(let payload):
                 let session = sessions.startSession(tabURL: payload.tabUrl, tabTitle: payload.tabTitle)
+                self?.onSessionStarted?(session.id)
                 return .success(id: request.id, payload: .object(["tabSessionId": .string(session.id.uuidString)]))
             }
         }
@@ -188,13 +212,14 @@ public final class BrowserBridgeService: @unchecked Sendable {
             .failure(id: request.id, code: .invalidMessage, message: "inspect.deactivate is app-initiated only; the bridge never accepts it as an inbound request")
         }
 
-        dispatcher.register(.elementPin) { [sessions, evidenceStore] request in
+        dispatcher.register(.elementPin) { [sessions, evidenceStore, weak self] request in
             Self.requireActiveSession(sessions, request) { tabSessionId in
                 switch PayloadCodec.decode(ElementPinPayload.self, from: request.payload) {
                 case .failure(let error):
                     return .failure(id: request.id, code: error.code, message: error.message)
                 case .success(let payload):
                     evidenceStore.store(payload.evidence, forTabSession: tabSessionId)
+                    self?.onEvidenceUpdated?(tabSessionId, payload.evidence)
                     return .success(id: request.id, payload: .object([:]))
                 }
             }
@@ -204,13 +229,14 @@ public final class BrowserBridgeService: @unchecked Sendable {
             .failure(id: request.id, code: .invalidMessage, message: "element.captureRequest is app-initiated only; the bridge never accepts it as an inbound request")
         }
 
-        dispatcher.register(.elementEvidence) { [sessions, evidenceStore] request in
+        dispatcher.register(.elementEvidence) { [sessions, evidenceStore, weak self] request in
             Self.requireActiveSession(sessions, request) { tabSessionId in
                 switch PayloadCodec.decode(ElementEvidencePayload.self, from: request.payload) {
                 case .failure(let error):
                     return .failure(id: request.id, code: error.code, message: error.message)
                 case .success(let payload):
                     evidenceStore.store(payload.evidence, forTabSession: tabSessionId)
+                    self?.onEvidenceUpdated?(tabSessionId, payload.evidence)
                     return .success(id: request.id, payload: .object([:]))
                 }
             }
