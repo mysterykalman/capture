@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://capture.app/schemas/project/capture-project-manifest.schema.json",
+  "title": "Capture Project Manifest",
+  "description": "manifest.json at the root of a *.capture package (a directory-style document bundle, UTType conforms to com.apple.package). See docs/PROJECT_FORMAT.md and Part I §9.",
+  "type": "object",
+  "required": ["schemaVersion", "id", "createdAt", "updatedAt", "kind", "source"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "id": { "type": "string", "format": "uuid" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "appVersion": { "type": "string" },
+    "kind": { "type": "string", "enum": ["screenshot", "recording", "assembly"] },
+    "title": { "type": "string" },
+    "source": {
+      "type": "object",
+      "required": ["relativePath", "contentHash"],
+      "additionalProperties": false,
+      "properties": {
+        "relativePath": { "type": "string", "description": "Path relative to the package root, e.g. source/original.png" },
+        "contentHash": { "type": "string", "description": "sha256:<hex>" },
+        "pixelWidth": { "type": "integer" },
+        "pixelHeight": { "type": "integer" },
+        "colorSpace": { "type": "string" }
+      }
+    },
+    "captureMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time" },
+        "sourceApp": { "type": "string" },
+        "url": { "type": ["string", "null"] },
+        "pageTitle": { "type": ["string", "null"] },
+        "viewport": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+        "devicePixelRatio": { "type": "number" },
+        "scrollPosition": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+        "browser": { "type": ["string", "null"] },
+        "os": { "type": "string" },
+        "colourScheme": { "type": "string", "enum": ["light", "dark"] },
+        "locale": { "type": "string" }
+      }
+    },
+    "files": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Relative paths of optional sidecar files present in this package. Missing optional files must be handled gracefully by readers.",
+      "properties": {
+        "annotations": { "type": "string", "default": "annotations.json" },
+        "measurements": { "type": "string", "default": "measurements.json" },
+        "redactions": { "type": "string", "default": "redactions.json" },
+        "browserElements": { "type": "string", "default": "browser/elements.json" },
+        "browserPage": { "type": "string", "default": "browser/page.json" },
+        "recordingTimeline": { "type": "string", "default": "recording/timeline.json" }
+      }
+    },
+    "outputSettings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "exportScale": { "type": "number" },
+        "exportFormat": { "type": "string" },
+        "filenameTemplate": { "type": "string" }
+      }
+    }
+  }
+}

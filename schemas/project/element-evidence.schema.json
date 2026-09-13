@@ -1,0 +1,179 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://capture.app/schemas/project/element-evidence.schema.json",
+  "title": "ElementEvidence",
+  "description": "The flagship DOM-anchored evidence object. Do NOT persist a full DOM dump by default — store only what is needed for recapture/comparison/handoff. Mirrored as a Swift Codable struct in mac/Sources/CaptureCore/Models/ElementEvidence.swift and as a TypeScript type in extensions/chromium/src/shared/elementEvidence.ts. Keep both in sync with this schema.",
+  "type": "object",
+  "required": ["id", "capturedAt", "url", "viewport", "locator", "rect"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "url": { "type": "string", "format": "uri" },
+    "title": { "type": "string" },
+    "viewport": {
+      "type": "object",
+      "required": ["width", "height", "devicePixelRatio", "scrollX", "scrollY"],
+      "additionalProperties": false,
+      "properties": {
+        "width": { "type": "number" },
+        "height": { "type": "number" },
+        "devicePixelRatio": { "type": "number" },
+        "scrollX": { "type": "number" },
+        "scrollY": { "type": "number" }
+      }
+    },
+    "locator": {
+      "type": "object",
+      "description": "Ranked locator candidates. Priority order on re-resolution: data-* id > stable unique id > role+accessibleName > semantic attributes > class/structure > text fingerprint > ancestry fingerprint > absolute DOM path (last resort). See docs/decisions/0002-locator-strategy.md.",
+      "required": ["primary", "candidates"],
+      "additionalProperties": false,
+      "properties": {
+        "primary": { "type": "string" },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["strategy", "value", "confidence"],
+            "additionalProperties": false,
+            "properties": {
+              "strategy": {
+                "type": "string",
+                "enum": [
+                  "data-attribute", "stable-id", "role-accessible-name",
+                  "semantic-attribute", "class-structure", "text-fingerprint",
+                  "ancestry-fingerprint", "absolute-path"
+                ]
+              },
+              "value": { "type": "string" },
+              "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+            }
+          }
+        },
+        "role": { "type": ["string", "null"] },
+        "accessibleName": { "type": ["string", "null"] },
+        "textFingerprint": { "type": ["string", "null"] },
+        "ancestryFingerprint": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "rect": {
+      "type": "object",
+      "required": ["x", "y", "width", "height"],
+      "additionalProperties": false,
+      "properties": {
+        "x": { "type": "number" }, "y": { "type": "number" },
+        "width": { "type": "number" }, "height": { "type": "number" }
+      }
+    },
+    "boxModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "padding": { "$ref": "#/definitions/edges" },
+        "border": { "$ref": "#/definitions/edges" },
+        "margin": { "$ref": "#/definitions/edges" },
+        "contentBox": { "$ref": "#/definitions/rectSize" },
+        "gap": { "type": ["string", "null"] },
+        "display": { "type": ["string", "null"] },
+        "position": { "type": ["string", "null"] }
+      }
+    },
+    "typography": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fontFamilyAuthored": { "type": ["string", "null"] },
+        "fontFamilyRendered": { "type": ["string", "null"] },
+        "fontSizePx": { "type": ["number", "null"] },
+        "fontWeight": { "type": ["string", "number", "null"] },
+        "fontStyle": { "type": ["string", "null"] },
+        "lineHeightPx": { "type": ["number", "null"] },
+        "letterSpacing": { "type": ["string", "null"] },
+        "textAlign": { "type": ["string", "null"] },
+        "textColor": { "type": ["string", "null"] },
+        "sourceURL": { "type": ["string", "null"] },
+        "sourceFormat": { "type": ["string", "null"] }
+      }
+    },
+    "appearance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "backgroundColor": { "type": ["string", "null"] },
+        "backgroundImage": { "type": ["string", "null"] },
+        "borderRadius": { "type": ["string", "null"] },
+        "boxShadow": { "type": ["string", "null"] },
+        "opacity": { "type": ["number", "null"] }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "display": { "type": ["string", "null"] },
+        "flexDirection": { "type": ["string", "null"] },
+        "zIndex": { "type": ["string", "null"] },
+        "overflow": { "type": ["string", "null"] }
+      }
+    },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "role": { "type": ["string", "null"] },
+        "accessibleName": { "type": ["string", "null"] },
+        "focusable": { "type": ["boolean", "null"] },
+        "tabIndex": { "type": ["number", "null"] },
+        "ariaAttributes": { "type": "object" },
+        "contrastRatio": { "type": ["number", "null"] }
+      }
+    },
+    "cssVariables": {
+      "type": "object",
+      "description": "Map of custom-property name to resolved value, only for properties actually used by this element's computed styles.",
+      "additionalProperties": { "type": "string" }
+    },
+    "authoredSources": {
+      "type": "array",
+      "description": "CSS provenance per inspected property, when resolvable. If unavailable, do not fabricate — omit or mark sourceUnavailable.",
+      "items": {
+        "type": "object",
+        "required": ["property", "computedValue"],
+        "additionalProperties": false,
+        "properties": {
+          "property": { "type": "string" },
+          "computedValue": { "type": "string" },
+          "authoredDeclaration": { "type": ["string", "null"] },
+          "selector": { "type": ["string", "null"] },
+          "stylesheetURL": { "type": ["string", "null"] },
+          "sourceUnavailable": { "type": "boolean" }
+        }
+      }
+    },
+    "pageState": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "colourScheme": { "type": ["string", "null"] },
+        "locale": { "type": ["string", "null"] },
+        "browser": { "type": ["string", "null"] },
+        "os": { "type": ["string", "null"] }
+      }
+    }
+  },
+  "definitions": {
+    "edges": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "top": { "type": "number" }, "right": { "type": "number" },
+        "bottom": { "type": "number" }, "left": { "type": "number" }
+      }
+    },
+    "rectSize": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "width": { "type": "number" }, "height": { "type": "number" } }
+    }
+  }
+}

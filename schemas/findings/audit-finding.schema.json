@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://capture.app/schemas/findings/audit-finding.schema.json",
+  "title": "AuditFinding",
+  "description": "A structured evidence object (Part III §24 / §17). Not a Jira replacement — exports to Jira/GitHub/Slack/Markdown via plugins.",
+  "type": "object",
+  "required": ["id", "title", "category", "severity", "status", "finding", "pageUrl", "createdAt", "updatedAt"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "description": "Auto-numbered, e.g. PDP-01" },
+    "projectId": { "type": ["string", "null"], "format": "uuid" },
+    "title": { "type": "string" },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Navigation", "Homepage", "PLP", "PDP", "Search", "Recommendations",
+        "Cart", "Checkout", "Accessibility", "Performance", "SEO", "Analytics",
+        "Merchandising", "Content"
+      ]
+    },
+    "severity": { "type": "string", "enum": ["Critical", "High", "Medium", "Low", "Opportunity"] },
+    "status": { "type": "string", "enum": ["open", "in-progress", "resolved", "verified", "wontfix", "duplicate"] },
+    "finding": { "type": "string" },
+    "recommendation": { "type": ["string", "null"] },
+    "expectedImpact": { "type": ["string", "null"] },
+    "pageUrl": { "type": "string" },
+    "viewport": { "type": ["array", "null"], "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+    "captureId": { "type": ["string", "null"], "format": "uuid" },
+    "elementEvidenceIds": { "type": "array", "items": { "type": "string", "format": "uuid" } },
+    "measurementIds": { "type": "array", "items": { "type": "string" } },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "tags": { "type": "array", "items": { "type": "string" } }
+  }
+}

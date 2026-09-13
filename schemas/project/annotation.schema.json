@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://capture.app/schemas/project/annotation.schema.json",
+  "title": "Annotation",
+  "description": "Base shape shared by every annotation object in annotations.json inside a .capture package (Part I §11). type-specific fields live under `style`/`typeData`.",
+  "type": "object",
+  "required": ["id", "type", "frame", "zIndex", "anchor"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "type": {
+      "type": "string",
+      "enum": [
+        "arrow", "line", "rectangle", "ellipse", "polygon", "text", "freehand",
+        "highlighter", "spotlight", "counter", "magnifier", "redact", "measurement",
+        "stamp", "cursor"
+      ]
+    },
+    "frame": {
+      "type": "object",
+      "required": ["x", "y", "width", "height"],
+      "additionalProperties": false,
+      "properties": {
+        "x": { "type": "number" }, "y": { "type": "number" },
+        "width": { "type": "number" }, "height": { "type": "number" }
+      }
+    },
+    "rotation": { "type": "number", "default": 0 },
+    "opacity": { "type": "number", "minimum": 0, "maximum": 1, "default": 1 },
+    "zIndex": { "type": "integer" },
+    "locked": { "type": "boolean", "default": false },
+    "hidden": { "type": "boolean", "default": false },
+    "groupId": { "type": ["string", "null"] },
+    "style": { "type": "object", "description": "Type-specific styling: colour, thickness, font, fill, line style, etc." },
+    "typeData": { "type": "object", "description": "Type-specific structured data: Counter format/start number, redaction mode, measurement endpoints, etc." },
+    "anchor": {
+      "type": "object",
+      "required": ["kind"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "type": "string", "enum": ["canvas", "pixel", "domElement"] },
+        "elementEvidenceId": { "type": ["string", "null"], "format": "uuid" },
+        "relativeAnchor": {
+          "type": "object",
+          "description": "Normalized (0-1) anchor point within the DOM element's rect at time of anchoring.",
+          "properties": { "x": { "type": "number" }, "y": { "type": "number" } }
+        },
+        "fallbackPixelPosition": {
+          "type": "object",
+          "properties": { "x": { "type": "number" }, "y": { "type": "number" } }
+        }
+      }
+    }
+  }
+}

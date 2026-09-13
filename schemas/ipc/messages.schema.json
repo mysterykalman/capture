@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://capture.app/schemas/ipc/messages.schema.json",
+  "title": "IPC Message Payloads",
+  "description": "Payload shape for each envelope.type value defined in envelope.schema.json. The native host and CaptureBrowserBridge MUST validate an incoming payload against the matching definition here before acting on it — content-script-originated messages are untrusted input (Part I §5.6).",
+  "definitions": {
+    "session.start.request": {
+      "type": "object",
+      "required": ["tabUrl"],
+      "additionalProperties": false,
+      "properties": {
+        "tabUrl": { "type": "string", "maxLength": 4096 },
+        "tabTitle": { "type": "string", "maxLength": 1024 }
+      }
+    },
+    "session.start.response": {
+      "type": "object",
+      "required": ["tabSessionId"],
+      "additionalProperties": false,
+      "properties": { "tabSessionId": { "type": "string", "format": "uuid" } }
+    },
+    "session.end.request": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {}
+    },
+    "session.ping.request": { "type": "object", "additionalProperties": false, "properties": {} },
+    "session.ping.response": {
+      "type": "object", "required": ["appVersion"], "additionalProperties": false,
+      "properties": { "appVersion": { "type": "string" } }
+    },
+    "inspect.activate.request": {
+      "type": "object", "additionalProperties": false,
+      "properties": { "mode": { "type": "string", "enum": ["hover", "pinned"] } }
+    },
+    "inspect.deactivate.request": { "type": "object", "additionalProperties": false, "properties": {} },
+    "element.pin.request": {
+      "type": "object",
+      "required": ["evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "evidence": { "$ref": "element-evidence.schema.json" }
+      }
+    },
+    "element.captureRequest.request": {
+      "type": "object",
+      "required": ["locator"],
+      "additionalProperties": false,
+      "properties": {
+        "locator": { "type": "string", "maxLength": 2048 },
+        "includeContextPaddingPx": { "type": "number", "minimum": 0, "maximum": 512 }
+      }
+    },
+    "element.evidence.request": {
+      "type": "object",
+      "required": ["evidence"],
+      "additionalProperties": false,
+      "properties": { "evidence": { "$ref": "element-evidence.schema.json" } }
+    },
+    "element.resolveAnchor.request": {
+      "type": "object",
+      "required": ["locator"],
+      "additionalProperties": false,
+      "properties": {
+        "locator": { "$ref": "element-evidence.schema.json#/properties/locator" }
+      }
+    },
+    "element.resolveAnchor.response": {
+      "type": "object",
+      "required": ["resolved"],
+      "additionalProperties": false,
+      "properties": {
+        "resolved": { "type": "boolean" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "rect": { "$ref": "element-evidence.schema.json#/properties/rect" }
+      }
+    },
+    "tab.info.request": {
+      "type": "object",
+      "required": ["url", "title", "viewport"],
+      "additionalProperties": false,
+      "properties": {
+        "url": { "type": "string", "maxLength": 4096 },
+        "title": { "type": "string", "maxLength": 1024 },
+        "viewport": { "$ref": "element-evidence.schema.json#/properties/viewport" }
+      }
+    },
+    "bookmarksBar.geometry.request": {
+      "type": "object",
+      "required": ["innerWidth", "innerHeight", "outerWidth", "outerHeight", "screenX", "screenY", "devicePixelRatio"],
+      "additionalProperties": false,
+      "properties": {
+        "innerWidth": { "type": "number" },
+        "innerHeight": { "type": "number" },
+        "outerWidth": { "type": "number" },
+        "outerHeight": { "type": "number" },
+        "screenX": { "type": "number" },
+        "screenY": { "type": "number" },
+        "devicePixelRatio": { "type": "number" },
+        "browser": { "type": "string", "enum": ["chrome", "chromium", "edge", "brave", "arc", "unknown"] }
+      }
+    },
+    "bookmarksBar.calibrate.request": {
+      "type": "object",
+      "required": ["browser", "normalizedRect"],
+      "additionalProperties": false,
+      "properties": {
+        "browser": { "type": "string" },
+        "displayScale": { "type": "number" },
+        "normalizedRect": {
+          "type": "object",
+          "required": ["x", "y", "width", "height"],
+          "additionalProperties": false,
+          "properties": {
+            "x": { "type": "number", "minimum": 0, "maximum": 1 },
+            "y": { "type": "number", "minimum": 0, "maximum": 1 },
+            "width": { "type": "number", "minimum": 0, "maximum": 1 },
+            "height": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        }
+      }
+    }
+  }
+}

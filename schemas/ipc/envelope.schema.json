@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://capture.app/schemas/ipc/envelope.schema.json",
+  "title": "IPC Envelope",
+  "description": "Versioned JSON envelope used on every hop of content-script -> service-worker -> Native Messaging host -> Unix socket -> Capture.app, and back. See docs/IPC_PROTOCOL.md.",
+  "oneOf": [
+    { "$ref": "#/definitions/request" },
+    { "$ref": "#/definitions/response" },
+    { "$ref": "#/definitions/errorResponse" }
+  ],
+  "definitions": {
+    "request": {
+      "type": "object",
+      "required": ["version", "id", "type", "payload"],
+      "additionalProperties": false,
+      "properties": {
+        "version": { "const": 1 },
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "type": "string", "enum": [
+          "session.start",
+          "session.end",
+          "session.ping",
+          "inspect.activate",
+          "inspect.deactivate",
+          "element.pin",
+          "element.captureRequest",
+          "element.evidence",
+          "element.resolveAnchor",
+          "tab.info",
+          "bookmarksBar.geometry",
+          "bookmarksBar.calibrate"
+        ]},
+        "tabSessionId": { "type": "string", "format": "uuid" },
+        "payload": { "type": "object" }
+      }
+    },
+    "response": {
+      "type": "object",
+      "required": ["version", "id", "ok", "payload"],
+      "additionalProperties": false,
+      "properties": {
+        "version": { "const": 1 },
+        "id": { "type": "string", "format": "uuid", "description": "Matches the request id this responds to." },
+        "ok": { "const": true },
+        "payload": { "type": "object" }
+      }
+    },
+    "errorResponse": {
+      "type": "object",
+      "required": ["version", "id", "ok", "error"],
+      "additionalProperties": false,
+      "properties": {
+        "version": { "const": 1 },
+        "id": { "type": "string", "format": "uuid" },
+        "ok": { "const": false },
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "type": "string",
+              "enum": [
+                "ELEMENT_NOT_FOUND",
+                "INVALID_MESSAGE",
+                "UNSUPPORTED_TYPE",
+                "TAB_SESSION_EXPIRED",
+                "PAYLOAD_TOO_LARGE",
+                "PERMISSION_DENIED",
+                "INTERNAL_ERROR"
+              ]
+            },
+            "message": { "type": "string", "maxLength": 2000 }
+          }
+        }
+      }
+    }
+  }
+}
