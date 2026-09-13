@@ -84,10 +84,10 @@ let package = Package(
         ),
 
         .testTarget(name: "CaptureCoreTests", dependencies: ["CaptureCore"], path: "Tests/CaptureCoreTests"),
-        .testTarget(name: "CaptureCaptureTests", dependencies: ["CaptureCapture"], path: "Tests/CaptureCaptureTests"),
-        .testTarget(name: "CaptureEditorTests", dependencies: ["CaptureEditor"], path: "Tests/CaptureEditorTests"),
-        .testTarget(name: "CaptureHistoryTests", dependencies: ["CaptureHistory"], path: "Tests/CaptureHistoryTests"),
-        .testTarget(name: "CaptureBrowserBridgeTests", dependencies: ["CaptureBrowserBridge"], path: "Tests/CaptureBrowserBridgeTests"),
-        .testTarget(name: "CaptureInspectionTests", dependencies: ["CaptureInspection"], path: "Tests/CaptureInspectionTests")
+        .testTarget(name: "CaptureCaptureTests", dependencies: ["CaptureCapture", "CaptureCore"], path: "Tests/CaptureCaptureTests"),
+        .testTarget(name: "CaptureEditorTests", dependencies: ["CaptureEditor", "CaptureCore"], path: "Tests/CaptureEditorTests"),
+        .testTarget(name: "CaptureHistoryTests", dependencies: ["CaptureHistory", "CaptureCore"], path: "Tests/CaptureHistoryTests"),
+        .testTarget(name: "CaptureBrowserBridgeTests", dependencies: ["CaptureBrowserBridge", "CaptureCore"], path: "Tests/CaptureBrowserBridgeTests"),
+        .testTarget(name: "CaptureInspectionTests", dependencies: ["CaptureInspection", "CaptureCore"], path: "Tests/CaptureInspectionTests")
     ]
 )

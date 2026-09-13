@@ -83,6 +83,12 @@ public struct CaptureProjectDocument: Sendable {
         try AtomicFileWriter.writeJSON(measurements, to: packageURL.appendingPathComponent(manifest.files.measurements))
         try AtomicFileWriter.writeJSON(redactions, to: packageURL.appendingPathComponent(manifest.files.redactions))
         if !browserElements.isEmpty {
+            // Deliberately asymmetric with annotations/measurements/redactions
+            // above (which are always written, even as `[]`): a plain
+            // pixel-only screenshot project should never gain an empty
+            // `browser/` directory it has no other reason to have. Readers
+            // must still treat a missing browserElements file as "none" —
+            // see docs/PROJECT_FORMAT.md.
             try AtomicFileWriter.writeJSON(browserElements, to: packageURL.appendingPathComponent(manifest.files.browserElements))
         }
     }
