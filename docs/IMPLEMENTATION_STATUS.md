@@ -218,11 +218,74 @@ file (`Placeholder.swift`) so the SwiftPM target isn't empty (an empty
 target directory fails `swift build` outright) — no recording capability
 exists.
 
-### `mac/Sources/CaptureUI` + `mac/Sources/CaptureApp` — see below
+### `mac/Sources/CaptureUI` + `mac/Sources/CaptureApp` — ✅ implemented (the integration layer)
 
-*(This section is filled in once the final integration pass, which was
-still running as this document was drafted, reports back — check the git
-log for a follow-up commit if this parenthetical is still here.)*
+This is where the six modules above actually become an app. Design tokens
+carry the spec's exact palette and semantic colour mapping (dynamic
+light/dark `NSColor`/`Color`). `MenuBarController` wires an `NSStatusItem`
+to real capture triggers. `CaptureOverlayWindow`/`CaptureFlowController`
+are the real crosshair/window-picker overlay driving
+`CaptureCapture.AreaToWindowCaptureController` and turning a finished
+selection into a real `ScreenCaptureEngine` call. `EditorWindowController`/
+`CanvasView`/`EditorToolbar`/`InspectorView` host `CaptureEditor.CanvasRenderer`'s
+output in a real `NSView`, push interactive annotation edits through
+`CaptureCore.UndoStack`, and implement copy/export/`.capture` save-and-
+reopen. `QuickAccessOverlay`, `HistoryWindowController` (backed by
+`HistoryStore.search`/`.recentCaptures`), `SettingsWindowController` +
+`ShortcutsSettingsView` (a real shortcut recorder wired to
+`GlobalShortcutManager`, the snap-engine checkbox list, the bookmarks-bar
+privacy toggle/redaction-style picker), `CommandPaletteWindow`, and
+`PermissionOnboardingView` round out Part I §28's primary surfaces.
+`CaptureApp`'s `AppDelegate`/`main.swift`/`AppEnvironment` are the actual
+entry point: opens `HistoryStore` at
+`~/Library/Application Support/Capture/history.sqlite`, starts
+`BrowserBridgeService` listening on the Unix socket at launch, and runs the
+permission-onboarding-then-normal-operation flow.
+
+**Phase 1 acceptance scenario (Part I §39 "First milestone") is wired end
+to end**: global shortcut → capture overlay → `ScreenCaptureEngine` →
+editor window with a real `CGImage` → interactive
+arrow/rectangle/ellipse/text/freehand/redact creation → crop → copy to
+clipboard → `HistoryStore.insertCapture` (indexed on capture, not gated
+behind an explicit save) → save as `.capture` via
+`CaptureProjectDocument.save` → reopen via `.load` with annotations still
+editable.
+
+**Phase 3 acceptance scenario ("First browser milestone") is wired end to
+end**, including a real fix applied during integration review: the
+implementing agent found that `BrowserBridgeService` exposed no way to
+*discover* that a tab session or new evidence existed — every read API
+(`latestEvidence(forTabSession:)`, `resolveAnchor`, ...) required already
+knowing the `UUID` a `session.start` request produced, but nothing told
+`CaptureApp` that `UUID`. Fixed by adding
+`BrowserBridgeService.onSessionStarted`/`.onEvidenceUpdated` callback
+properties (set by `AppEnvironment` before `start()`) so the app is now
+actually notified the moment the extension pins an element, instead of
+Phase 3 being unreachable outside manual testing with a known session id.
+The capture-target rect still needs a browser window frame to anchor
+against; `AppEnvironment.frontmostBrowserWindowFrame()` resolves this via
+`CGWindowListCopyWindowInfo` filtered to known browser bundle IDs'
+frontmost window — a **best-effort heuristic** (assumes the browser is
+still frontmost when the callback fires, and picks the first matching
+window if more than one is open), stacked on top of
+`BrowserElementCaptureFlow.resolveScreenRect`'s own already-documented
+"least-trusted, unverified on a real browser/DPI combination" coordinate
+assumption. Both are honestly uncertain, not silently assumed correct —
+validating this whole chain against a real Chrome window is the single
+most important manual test for Phase 3 once this builds on a Mac.
+
+**Two small app-owned seams fill real gaps found in other modules, kept in
+`CaptureApp` rather than retroactively edited into the modules that don't
+have them**: `ContentAddressedBlobStore` (no module defined the
+content-addressed `SHA256 -> blob` storage `CaptureCore.Data.sha256Hex()`'s
+own doc comment names as the intended design), and an `editor-state.json`
+sidecar written alongside (not through) `CaptureProjectDocument.save` for
+crop rect / canvas size / Backdrop settings, since `ProjectManifest` has no
+field for them.
+
+Not implemented in this layer: Phases 4-9's UI (recording controls,
+responsive-lab panes, accessibility-audit views, ecommerce panels, visual
+diff, automation/CLI surface) — there is nothing to wire them to yet.
 
 ### `native-host/` (`CaptureNativeHost`) — ✅ implemented
 
@@ -350,6 +413,16 @@ extension's test suite is written, run, and passing (34/34).**
   (live `AXUIElement` role/description matching for each browser family)
   is implemented but its accuracy against real, current Chrome/Edge/Brave
   builds is unverified.
+- Phase 3's auto-fire path (browser element pinned → app notified →
+  captured) depends on a frontmost-window heuristic
+  (`AppEnvironment.frontmostBrowserWindowFrame()`) that assumes the
+  browser is still the frontmost app when the callback fires — see the
+  `CaptureUI`/`CaptureApp` section above. Reasonable, not guaranteed.
+- No UI surfaces `AuditFinding` creation/browsing yet — the model and its
+  `CaptureHistory` persistence are real, but there is no "Capture Finding"
+  command anywhere in `CaptureUI` (Part III §17's Step Recorder / audit
+  mode is Phase 7, out of this build's scope, so this isn't a surprise —
+  named here so it isn't mistaken for an oversight in the Phase 0-3 UI).
 
 ## What to do next (for whoever picks this up on a real Mac)
 
@@ -366,4 +439,12 @@ extension's test suite is written, run, and passing (34/34).**
 6. Run the Phase 1 and Phase 3 acceptance scenarios from the spec by hand
    (area capture → annotate → save/reopen a `.capture` project; hover an
    element in Chrome → pin it → see it in `Capture.app`) and fix whatever
-   breaks.
+   breaks — for Phase 3 specifically, confirm
+   `AppEnvironment.frontmostBrowserWindowFrame()` and
+   `BrowserElementCaptureFlow.resolveScreenRect()` actually produce the
+   right on-screen rect against a real Chrome window; both are documented,
+   reasoned-through guesses, not verified behaviour.
+7. `scripts/generate-icons.sh` to regenerate the app icon from the vector
+   source via native macOS tools (the committed PNGs were rasterized with
+   headless Chromium + Pillow in the Linux sandbox this was built in —
+   functional, but `qlmanage`/`sips` will produce a crisper result).
