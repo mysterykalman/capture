@@ -80,7 +80,7 @@ public struct ElementEvidence: Codable, Identifiable, Hashable, Sendable {
     /// resolution happens in the extension content script (JS DOM APIs
     /// aren't available natively); this type only carries the ranked data
     /// and the resolved confidence score computed there.
-    public struct Locator: Codable, Hashable, Sendable {
+    public struct Locator: Hashable, Sendable {
         public var primary: String
         public var candidates: [Candidate]
         public var role: String?
@@ -146,10 +146,19 @@ public struct ElementEvidence: Codable, Identifiable, Hashable, Sendable {
         }
     }
 
-    public struct Typography: Codable, Hashable, Sendable {
+    public struct Typography: Hashable, Sendable {
         public var fontFamilyAuthored: String?
         public var fontFamilyRendered: String?
         public var fontSizePx: Double?
+        /// The schema (`element-evidence.schema.json`) allows `string |
+        /// number | null` here — a browser can report either `"600"` or
+        /// `600`. Stored as `String?` for a stable Swift-side API (every
+        /// caller just wants to display it), but see the custom `Codable`
+        /// conformance below: it accepts either JSON shape on decode
+        /// (synthesized `Decodable` would reject a numeric `fontWeight` as
+        /// a type mismatch — a real bug found while implementing
+        /// `CaptureBrowserBridge`'s payload validation) and always encodes
+        /// back out as a string.
         public var fontWeight: String?
         public var fontStyle: String?
         public var lineHeightPx: Double?
@@ -245,5 +254,90 @@ extension ElementEvidence.Locator {
             }
             return lhs.confidence > rhs.confidence
         }
+    }
+}
+
+extension ElementEvidence.Locator: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case primary, candidates, role, accessibleName, textFingerprint, ancestryFingerprint
+    }
+
+    /// Trust-boundary fix (Part I §5.6): `Locator` arrives over IPC from
+    /// the untrusted content script.
+    /// `schemas/project/element-evidence.schema.json` requires only
+    /// `primary`+`candidates`, and doesn't even require `candidates` to be
+    /// non-empty — `ancestryFingerprint` isn't required at all. Swift's
+    /// *synthesized* `Decodable` would still reject any payload omitting
+    /// either array key (no key -> no default for a non-Optional stored
+    /// property), silently rejecting schema-valid `element.pin`/
+    /// `element.resolveAnchor` messages as `INVALID_MESSAGE` — a real bug
+    /// found while implementing `CaptureBrowserBridge`'s payload
+    /// validation against this exact type. This custom conformance
+    /// defaults both missing arrays to `[]` instead of requiring the key.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        primary = try container.decode(String.self, forKey: .primary)
+        candidates = try container.decodeIfPresent([Candidate].self, forKey: .candidates) ?? []
+        role = try container.decodeIfPresent(String.self, forKey: .role)
+        accessibleName = try container.decodeIfPresent(String.self, forKey: .accessibleName)
+        textFingerprint = try container.decodeIfPresent(String.self, forKey: .textFingerprint)
+        ancestryFingerprint = try container.decodeIfPresent([String].self, forKey: .ancestryFingerprint) ?? []
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(primary, forKey: .primary)
+        try container.encode(candidates, forKey: .candidates)
+        try container.encodeIfPresent(role, forKey: .role)
+        try container.encodeIfPresent(accessibleName, forKey: .accessibleName)
+        try container.encodeIfPresent(textFingerprint, forKey: .textFingerprint)
+        try container.encode(ancestryFingerprint, forKey: .ancestryFingerprint)
+    }
+}
+
+extension ElementEvidence.Typography: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case fontFamilyAuthored, fontFamilyRendered, fontSizePx, fontWeight, fontStyle
+        case lineHeightPx, letterSpacing, textAlign, textColor, sourceURL, sourceFormat
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        fontFamilyAuthored = try container.decodeIfPresent(String.self, forKey: .fontFamilyAuthored)
+        fontFamilyRendered = try container.decodeIfPresent(String.self, forKey: .fontFamilyRendered)
+        fontSizePx = try container.decodeIfPresent(Double.self, forKey: .fontSizePx)
+        // Accept either JSON string or JSON number for fontWeight (schema:
+        // string | number | null) — see the property's doc comment.
+        if let stringValue = try? container.decodeIfPresent(String.self, forKey: .fontWeight) {
+            fontWeight = stringValue
+        } else if let numberValue = try container.decodeIfPresent(Double.self, forKey: .fontWeight) {
+            fontWeight = numberValue.truncatingRemainder(dividingBy: 1) == 0
+                ? String(Int(numberValue))
+                : String(numberValue)
+        } else {
+            fontWeight = nil
+        }
+        fontStyle = try container.decodeIfPresent(String.self, forKey: .fontStyle)
+        lineHeightPx = try container.decodeIfPresent(Double.self, forKey: .lineHeightPx)
+        letterSpacing = try container.decodeIfPresent(String.self, forKey: .letterSpacing)
+        textAlign = try container.decodeIfPresent(String.self, forKey: .textAlign)
+        textColor = try container.decodeIfPresent(String.self, forKey: .textColor)
+        sourceURL = try container.decodeIfPresent(String.self, forKey: .sourceURL)
+        sourceFormat = try container.decodeIfPresent(String.self, forKey: .sourceFormat)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(fontFamilyAuthored, forKey: .fontFamilyAuthored)
+        try container.encodeIfPresent(fontFamilyRendered, forKey: .fontFamilyRendered)
+        try container.encodeIfPresent(fontSizePx, forKey: .fontSizePx)
+        try container.encodeIfPresent(fontWeight, forKey: .fontWeight)
+        try container.encodeIfPresent(fontStyle, forKey: .fontStyle)
+        try container.encodeIfPresent(lineHeightPx, forKey: .lineHeightPx)
+        try container.encodeIfPresent(letterSpacing, forKey: .letterSpacing)
+        try container.encodeIfPresent(textAlign, forKey: .textAlign)
+        try container.encodeIfPresent(textColor, forKey: .textColor)
+        try container.encodeIfPresent(sourceURL, forKey: .sourceURL)
+        try container.encodeIfPresent(sourceFormat, forKey: .sourceFormat)
     }
 }
