@@ -92,6 +92,11 @@ final class UnixSocketServer: @unchecked Sendable {
         let path = socketURL.path
         var addr = sockaddr_un()
         addr.sun_family = sa_family_t(AF_UNIX)
+        // BSD sockaddrs carry their own length; harmless to omit for
+        // bind(2) (the explicit addrLength argument below is what the
+        // kernel actually relies on) but setting it matches the
+        // convention the rest of Darwin's socket APIs expect.
+        addr.sun_len = UInt8(MemoryLayout<sockaddr_un>.size)
         let maxPathBytes = MemoryLayout.size(ofValue: addr.sun_path)
         guard path.utf8.count < maxPathBytes else {
             throw ServerError.pathTooLongForUnixSocket(path)

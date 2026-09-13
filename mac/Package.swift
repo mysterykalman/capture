@@ -87,6 +87,7 @@ let package = Package(
         .testTarget(name: "CaptureCaptureTests", dependencies: ["CaptureCapture"], path: "Tests/CaptureCaptureTests"),
         .testTarget(name: "CaptureEditorTests", dependencies: ["CaptureEditor"], path: "Tests/CaptureEditorTests"),
         .testTarget(name: "CaptureHistoryTests", dependencies: ["CaptureHistory"], path: "Tests/CaptureHistoryTests"),
-        .testTarget(name: "CaptureBrowserBridgeTests", dependencies: ["CaptureBrowserBridge"], path: "Tests/CaptureBrowserBridgeTests")
+        .testTarget(name: "CaptureBrowserBridgeTests", dependencies: ["CaptureBrowserBridge"], path: "Tests/CaptureBrowserBridgeTests"),
+        .testTarget(name: "CaptureInspectionTests", dependencies: ["CaptureInspection"], path: "Tests/CaptureInspectionTests")
     ]
 )

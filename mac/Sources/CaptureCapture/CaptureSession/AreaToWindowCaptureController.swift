@@ -130,6 +130,38 @@ public final class AreaToWindowCaptureController {
         }
     }
 
+    // MARK: NSEvent monitor convenience
+
+    /// Wires this controller directly to a raw `NSEvent`, for `CaptureUI`
+    /// code that drives the overlay via `NSEvent.addLocalMonitorForEvents`
+    /// rather than overriding `mouseDown(with:)`/`keyDown(with:)` etc. on a
+    /// custom `NSView`. Both wiring styles are valid; this is purely a
+    /// convenience translator, not the only supported input path — the
+    /// per-gesture methods above (`mouseDown(at:modifiers:)` etc.) are
+    /// what to call from view-override-style event handling instead.
+    /// Always returns `event` unmodified; the caller's own monitor closure
+    /// decides whether to swallow it (return `nil`) or pass it through.
+    @discardableResult
+    public func handle(_ event: NSEvent) -> NSEvent {
+        let point = CapturePoint(x: NSEvent.mouseLocation.x, y: NSEvent.mouseLocation.y)
+        let modifiers = ShortcutModifiers(nsEventModifierFlags: event.modifierFlags)
+        switch event.type {
+        case .leftMouseDown:
+            mouseDown(at: point, modifiers: modifiers)
+        case .leftMouseDragged:
+            mouseDragged(to: point)
+        case .leftMouseUp:
+            mouseUp(at: point)
+        case .mouseMoved:
+            mouseMoved(to: point)
+        case .keyDown:
+            keyDown(keyCode: event.keyCode)
+        default:
+            break
+        }
+        return event
+    }
+
     // MARK: Internal
 
     private func apply(_ event: CaptureInteractionEvent) {

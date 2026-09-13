@@ -330,7 +330,7 @@ public struct CanvasRenderer {
     private func drawSnapGuides(_ guides: [SnapLine], canvasSize: CaptureSize, into context: CGContext) {
         context.saveGState()
         defer { context.restoreGState() }
-        context.setStrokeColor(CGColor(red: 0.98, green: 0.29, blue: 0.55, alpha: 0.9))
+        context.setStrokeColor(CGColor(srgbRed: 0.98, green: 0.29, blue: 0.55, alpha: 0.9))
         context.setLineWidth(1)
         for guide in guides {
             switch guide.axis {

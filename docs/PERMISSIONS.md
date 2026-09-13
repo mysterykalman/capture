@@ -13,11 +13,22 @@ declined.
 | **Accessibility** | Only when the browser bookmarks-bar-privacy AXUIElement detection (Tier 1, see `docs/ARCHITECTURE.md`) is first needed for a supported browser window | Detection falls back to Tier 2 (extension-reported geometry) automatically; never used as a substitute for the Chromium extension's semantic DOM data |
 | **Microphone** | Only when a recording with microphone audio is started (Phase 5 — not yet implemented) | N/A until Phase 5 |
 | **Camera** | Only when a recording with a camera overlay is started (Phase 5 — not yet implemented) | N/A until Phase 5 |
+| **Input Monitoring** | The first time any global shortcut (Part I's Global Custom Shortcut System) is registered, at first launch after onboarding | Global shortcuts silently fail to fire — `CaptureUI` must surface this state explicitly (e.g. a persistent banner/menu-bar-item state), never leave the user wondering why a shortcut does nothing |
 
-Capture never requests Input Monitoring as a substitute for a feature that
-can be done another way, and never requests Accessibility merely to obtain
-browser DOM data the Chromium extension can supply more precisely and with
-narrower scope.
+**Correction from an earlier draft of this document:** `CaptureCapture`'s
+global shortcut manager uses `NSEvent.addGlobalMonitorForEvents`, which
+macOS gates behind the **Input Monitoring** TCC permission (distinct from
+Accessibility) — this was missing from this table until the
+`CaptureCapture` implementation flagged it. This is requested once, at
+first launch, rather than per-shortcut, since nearly every core capture
+action in Part I's Global Custom Shortcut System depends on it and gating
+it feature-by-feature would just mean repeatedly re-prompting. A
+permission-free alternative (Carbon's `RegisterEventHotKey`) exists and is
+worth evaluating in a follow-up pass to avoid this prompt entirely — noted
+as a real, undecided trade-off, not a settled design choice.
+
+Capture never requests Accessibility merely to obtain browser DOM data the
+Chromium extension can supply more precisely and with narrower scope.
 
 ## Chromium extension permissions
 

@@ -6,7 +6,7 @@ import Foundation
 /// have their own dedicated renderers — `Redaction/RedactionRenderer.swift`
 /// and `drawMeasurement` below respectively — called directly by
 /// `Rendering/CanvasRenderer.swift` as their own fixed architectural layer,
-/// see `Document/EditorDocument.RenderLayerGroup`).
+/// see `RenderLayerGroup` in `Document/EditorDocument.swift`).
 ///
 /// Every method here takes a `CGContext` already positioned in canvas
 /// coordinates (i.e. `context.saveGState()`/coordinate setup is the caller's

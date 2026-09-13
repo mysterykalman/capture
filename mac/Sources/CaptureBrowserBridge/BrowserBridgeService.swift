@@ -34,7 +34,13 @@ public final class BrowserBridgeService: @unchecked Sendable {
     public let evidenceStore: ElementEvidenceStore
     public let tabMetadata: TabMetadataStore
 
-    private let dispatcher: MessageDispatcher
+    /// `internal`, not `private`: lets `CaptureBrowserBridgeTests`
+    /// (`@testable import`) dispatch real requests through the exact
+    /// handlers registered below without needing a live socket — exercising
+    /// `TAB_SESSION_EXPIRED`/`INVALID_MESSAGE` behaviour end-to-end rather
+    /// than only unit-testing `MessageDispatcher` against hand-rolled fake
+    /// handlers. Still not part of this module's public API surface.
+    let dispatcher: MessageDispatcher
     private let server: UnixSocketServer
     private let logger: CaptureLogger
     private let appVersion: String
